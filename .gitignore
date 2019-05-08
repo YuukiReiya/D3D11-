@@ -32,6 +32,14 @@
 *.app
 
 # this vs project
-*.vs/
+D3D11MinRender/.vs/
 *.db
 *.opendb
+*.log
+*/*/Debug/
+*/Debug/
+*/*/Release/
+*/Release/
+*.ilk
+*.pdb
+*.idb
