@@ -30,3 +30,8 @@
 *.exe
 *.out
 *.app
+
+# this vs project
+*.vs/
+*.db
+*.opendb
