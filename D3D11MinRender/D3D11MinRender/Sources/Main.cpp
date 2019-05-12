@@ -131,7 +131,7 @@ void Main::App()
 void Main::Render()
 {
 	//画面クリア
-	float ClearColor[4] = { 0,0,0.5,1 };// クリア色作成　RGBAの順
+	float ClearColor[4] = { 0.6f,0.6f,0.6f,1 };// クリア色作成　RGBAの順
 	pContext->ClearRenderTargetView(pRTV, ClearColor);//カラーバッファクリア
 	pContext->ClearDepthStencilView(pDSV, D3D11_CLEAR_DEPTH, 1.0f, 0);//デプスステンシルバッファクリア
 

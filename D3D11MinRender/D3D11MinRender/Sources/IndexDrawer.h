@@ -3,15 +3,31 @@
 #include <d3d11.h>
 #include <d3dcompiler.h>
 #include <DirectXMath.h>
+#include <vector>
+#include <fstream>
+
 #define FAILED_ERROR(hr,str) if(FAILED(hr)){MessageBox(NULL, str, L"Error", MB_OK);}
 
+struct alignas(16) Vertex
+{
+	DirectX::XMFLOAT3 pos;
+	DirectX::XMFLOAT4 color;
+};
+
+struct CBuffer
+{
+	DirectX::XMMATRIX world;
+	DirectX::XMMATRIX view;
+	DirectX::XMMATRIX proj;
+};
 class IndexDrawer:public IRender
 {
 public:
-	IndexDrawer() {};
+	IndexDrawer() { eyePt = { 0, 0, -10 }; };
 	~IndexDrawer() {};
 
 	void Init();
+	void Update();
 	HRESULT Draw()override;
 private:
 	ID3D11InputLayout*pInputLayout;
@@ -20,16 +36,37 @@ private:
 	ID3D11Buffer*pCB;
 	ID3D11Buffer*pVB;
 	ID3D11Buffer*pIB;
+	std::vector<UINT>index;
+	std::vector<Vertex>vertex;
+
+	DirectX::XMFLOAT3 eyePt;
 };
 
-struct Vertex
+class MeshReadHelper
 {
-	DirectX::XMFLOAT3 pos;
-};
+public:
+	/*!
+		@struct	ReadBuffer
+		@brief	読み込んだバッファ
+	*/
+	struct ReadBuffer
+	{
+		/*!
+			@var	vertices
+			@brief	頂点
+			@TODO	外部ファイルにはdouble型で書き込まれているため、float型にキャストする
+		*/
+		std::vector<Vertex>vertices;
 
-struct CBuffer
-{
-	DirectX::XMMATRIX world;
-	DirectX::XMMATRIX view;
-	DirectX::XMMATRIX proj;
+		/*!
+			@var	indices
+			@brief	頂点インデックス
+		*/
+		std::vector<uint32_t>indices;
+	};
+	static ReadBuffer Read(std::string path);
+
+private:
+	MeshReadHelper() = delete;
+	~MeshReadHelper() = delete;
 };
