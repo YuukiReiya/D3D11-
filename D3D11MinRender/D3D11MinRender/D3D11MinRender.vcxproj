@@ -117,6 +117,7 @@
   <ItemGroup>
     <ClCompile Include="Sources\Entry.cpp" />
     <ClCompile Include="Sources\IndexDrawer.cpp" />
+    <ClCompile Include="Sources\Keyboard.cpp" />
     <ClCompile Include="Sources\Main.cpp" />
     <ClCompile Include="Sources\Render.cpp" />
     <ClCompile Include="Sources\Scene.cpp" />
@@ -125,6 +126,7 @@
   <ItemGroup>
     <ClInclude Include="Sources\IndexDrawer.h" />
     <ClInclude Include="Sources\IRender.h" />
+    <ClInclude Include="Sources\Keyboard.h" />
     <ClInclude Include="Sources\Main.h" />
     <ClInclude Include="Sources\ps_test.h" />
     <ClInclude Include="Sources\Render.h" />
