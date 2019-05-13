@@ -5,11 +5,54 @@
 #include "Render.h"
 #include <string>
 #include "Keyboard.h"
+#include "WICTextureLoader.h"
+#include <wrl/client.h>
 
 using namespace DirectX;
 using namespace std;
 typedef Keyboard key;
 
+
+HRESULT IndexDrawer::SetupTexture(std::wstring path)
+{
+	HRESULT hr;
+	Microsoft::WRL::ComPtr<ID3D11Resource> pResource = nullptr;
+	
+	hr = CreateWICTextureFromFile(
+		Main::pDevice,
+		path.c_str(),
+		pResource.GetAddressOf(),
+		&pSRV
+	);
+
+	// ローカル変数のメモリ開放
+	if (pResource.Get() != nullptr) {
+		pResource.Reset();
+	}
+	FAILED_ERROR(hr, L"srv");
+	if (FAILED(hr)) { return E_FAIL; }
+
+	return S_OK;
+}
+
+HRESULT IndexDrawer::SetupSample()
+{
+	D3D11_SAMPLER_DESC sd;
+	sd.Filter = D3D11_FILTER::D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+	sd.AddressU = D3D11_TEXTURE_ADDRESS_MODE::D3D11_TEXTURE_ADDRESS_CLAMP;
+	sd.AddressV = D3D11_TEXTURE_ADDRESS_MODE::D3D11_TEXTURE_ADDRESS_CLAMP;
+	sd.AddressW = D3D11_TEXTURE_ADDRESS_MODE::D3D11_TEXTURE_ADDRESS_CLAMP;
+	
+	HRESULT hr;
+	hr = Main::pDevice->CreateSamplerState(
+		&sd,
+		&pSamp
+	);
+	FAILED_ERROR(hr, L"sampler");
+	if (FAILED(hr)) { return E_FAIL; }
+
+	return S_OK;
+}
 
 void IndexDrawer::Init()
 {
@@ -182,6 +225,14 @@ void IndexDrawer::Update()
 
 }
 
+enum DrawType {
+	FAIL,
+	SOLID,
+	POLYGON
+};
+DrawType type = DrawType::SOLID;
+
+
 HRESULT IndexDrawer::Draw()
 {
 	HRESULT hr;
@@ -251,16 +302,23 @@ HRESULT IndexDrawer::Draw()
 
 	//	トポロジー
 	{
-		//	頂点壊れる？(ポリゴン変)
-		//Main::pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-
-		//	綺麗にポリゴン表示出来ているっぽい
-		Main::pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY::D3D10_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
-
-		//	ソリッド(見かけは大丈夫っぽい)
-		Main::pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY::D3D10_PRIMITIVE_TOPOLOGY_LINESTRIP);
-
-		//
+		switch (type)
+		{
+		case FAIL:
+			//	頂点壊れる？(ポリゴン変)
+			Main::pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+			break;
+		case SOLID:
+			//	ソリッド(見かけは大丈夫っぽい)
+			Main::pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY::D3D10_PRIMITIVE_TOPOLOGY_LINESTRIP);
+			break;
+		case POLYGON:
+			//	綺麗にポリゴン表示出来ているっぽい
+			Main::pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY::D3D10_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
+			break;
+		default:
+			break;
+		}
 	}
 
 	//Main::pContext->Draw(3, 0);

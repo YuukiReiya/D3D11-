@@ -5,6 +5,7 @@
 #include <DirectXMath.h>
 #include <vector>
 #include <fstream>
+#include <string>
 
 #define FAILED_ERROR(hr,str) if(FAILED(hr)){MessageBox(NULL, str, L"Error", MB_OK);}
 
@@ -26,6 +27,8 @@ public:
 	IndexDrawer() { eyePt = { 0, 0, -10 }; };
 	~IndexDrawer() {};
 
+	HRESULT SetupTexture(std::wstring path);
+	HRESULT SetupSample();
 	void Init();
 	void Update();
 	HRESULT Draw()override;
@@ -38,7 +41,8 @@ private:
 	ID3D11Buffer*pIB;
 	std::vector<UINT>index;
 	std::vector<Vertex>vertex;
-
+	ID3D11ShaderResourceView*pSRV;
+	ID3D11SamplerState* pSamp;
 	DirectX::XMFLOAT3 eyePt;
 };
 
