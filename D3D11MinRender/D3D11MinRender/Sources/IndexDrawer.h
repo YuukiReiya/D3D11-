@@ -12,7 +12,7 @@
 struct alignas(16) Vertex
 {
 	DirectX::XMFLOAT3 pos;
-	DirectX::XMFLOAT4 color;
+	//DirectX::XMFLOAT2 uv;
 };
 
 struct CBuffer
@@ -20,6 +20,7 @@ struct CBuffer
 	DirectX::XMMATRIX world;
 	DirectX::XMMATRIX view;
 	DirectX::XMMATRIX proj;
+	DirectX::XMFLOAT4 color;
 };
 class IndexDrawer:public IRender
 {
@@ -27,12 +28,14 @@ public:
 	IndexDrawer() { eyePt = { 0, 0, -10 }; };
 	~IndexDrawer() {};
 
-	HRESULT SetupTexture(std::wstring path);
-	HRESULT SetupSample();
-	void Init();
+	HRESULT CreateTexture(std::wstring path);
+	HRESULT CreateSampler();
+	void Init(std::string meshPath);
 	void Update();
 	HRESULT Draw()override;
 private:
+	void SetupSRV();
+	void SetupSampler();
 	ID3D11InputLayout*pInputLayout;
 	ID3D11VertexShader*pVS;
 	ID3D11PixelShader*pPS;

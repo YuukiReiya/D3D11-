@@ -8,7 +8,10 @@
 void Scene::Init()
 {
 	id = new IndexDrawer;
-	id->Init();
+	id->Init("model1.yfm");
+	//id->CreateTexture(L"textures.png");
+	FAILED_ERROR(id->CreateTexture(L"cboka-bmk0z.png"),L"cretae texture");
+	id->CreateSampler();
 }
 
 void Scene::Update()

@@ -7,17 +7,22 @@
 #include "Keyboard.h"
 #include "WICTextureLoader.h"
 #include <wrl/client.h>
-
+#include <iostream>
 using namespace DirectX;
 using namespace std;
 typedef Keyboard key;
 
 
-HRESULT IndexDrawer::SetupTexture(std::wstring path)
+HRESULT IndexDrawer::CreateTexture(std::wstring path)
 {
 	HRESULT hr;
 	Microsoft::WRL::ComPtr<ID3D11Resource> pResource = nullptr;
 	
+	ifstream is(path);
+	if (is.fail()) {
+		std::cout << "fileねーよ" << endl;
+	}
+
 	hr = CreateWICTextureFromFile(
 		Main::pDevice,
 		path.c_str(),
@@ -35,9 +40,10 @@ HRESULT IndexDrawer::SetupTexture(std::wstring path)
 	return S_OK;
 }
 
-HRESULT IndexDrawer::SetupSample()
+HRESULT IndexDrawer::CreateSampler()
 {
 	D3D11_SAMPLER_DESC sd;
+	SecureZeroMemory(&sd, sizeof(sd));
 	sd.Filter = D3D11_FILTER::D3D11_FILTER_MIN_MAG_MIP_LINEAR;
 	sd.AddressU = D3D11_TEXTURE_ADDRESS_MODE::D3D11_TEXTURE_ADDRESS_CLAMP;
 	sd.AddressV = D3D11_TEXTURE_ADDRESS_MODE::D3D11_TEXTURE_ADDRESS_CLAMP;
@@ -53,17 +59,20 @@ HRESULT IndexDrawer::SetupSample()
 
 	return S_OK;
 }
-
-void IndexDrawer::Init()
+#define NEW_S
+void IndexDrawer::Init(string meshPath)
 {
 	HRESULT hr;
+
 	//	頂点レイアウト
 	{
 		//	頂点レイアウト
 		D3D11_INPUT_ELEMENT_DESC vd[]
 		{
-			{"POSITION",0,DXGI_FORMAT_R32G32B32_FLOAT,	 0,							  0,D3D11_INPUT_PER_VERTEX_DATA,0},
-			{"COLOR",	0,DXGI_FORMAT_R32G32B32A32_FLOAT,0,D3D11_APPEND_ALIGNED_ELEMENT,D3D11_INPUT_PER_VERTEX_DATA,0},
+			{ "POSITION",0,DXGI_FORMAT_R32G32B32_FLOAT,	 0,							  0,D3D11_INPUT_PER_VERTEX_DATA,0},
+#ifdef NEW_S
+			{ "TEXCOORD",0,DXGI_FORMAT_R32G32_FLOAT,0,D3D11_APPEND_ALIGNED_ELEMENT,D3D11_INPUT_PER_VERTEX_DATA,0 },
+#endif
 		};
 		uint32_t en = sizeof(vd) / sizeof(*vd);
 		hr = Main::pDevice->CreateInputLayout(
@@ -74,7 +83,7 @@ void IndexDrawer::Init()
 			&pInputLayout
 		);
 		FAILED_ERROR(hr, L"inputlayout");
-		if (FAILED(hr)) { return; }
+		if (FAILED(hr)) { exit(0); return; }
 	}
 
 	//	頂点シェーダー
@@ -119,28 +128,18 @@ void IndexDrawer::Init()
 		if (FAILED(hr)) { return; }
 	}
 
-	auto read = MeshReadHelper::Read("test.yfm");
+	auto read = MeshReadHelper::Read(meshPath);
 
 	//	頂点バッファ
 	{
 		//	頂点
 		{
-			//右上
-			vertex.push_back({ { 0.5f, 0.5f,0},{1,0,0,1} });
-			//右下
-			vertex.push_back({ { 0.5f, -0.5f,0},{1,0,0,1} });
-			//左下
-			vertex.push_back({ {-0.5f, -0.5f,0},{1,0,0,1} });
-			//左上
-			vertex.push_back({ {-0.5f, 0.5f,0},{1,0,0,1} });
-
-			vertex.push_back({ {-0.0f, 1.0f,0},{1,0,0,1} });
-
 			vertex.clear();
 			int i = 0;
 			while (i < read.vertices.size())
 			{
-				vertex.push_back({ { read.vertices[i].pos }, { 1,0,0,1 } });
+				vertex.push_back({ { read.vertices[i].pos } });
+				//vertex.push_back({ { read.vertices[i].pos }, { 1,0,0,1 } });
 				i++;
 			}
 		}
@@ -200,6 +199,7 @@ void IndexDrawer::Init()
 
 		Main::pContext->IASetIndexBuffer(pIB, DXGI_FORMAT_R32_UINT, 0);
 	}
+
 }
 
 void IndexDrawer::Update()
@@ -230,7 +230,7 @@ enum DrawType {
 	SOLID,
 	POLYGON
 };
-DrawType type = DrawType::SOLID;
+DrawType type = DrawType::POLYGON;
 
 
 HRESULT IndexDrawer::Draw()
@@ -277,6 +277,7 @@ HRESULT IndexDrawer::Draw()
 		cb.world = w;
 		cb.view = v;
 		cb.proj = p;
+		cb.color = { 1,1,0,1 };
 
 		memcpy_s(pData.pData, pData.RowPitch, (void*)(&cb), sizeof(cb));
 		Main::pContext->Unmap(pCB, 0);
@@ -321,9 +322,37 @@ HRESULT IndexDrawer::Draw()
 		}
 	}
 
+#ifdef NEW_S
+	//	サンプラー
+	if (pSamp != nullptr) {
+		SetupSampler();
+	}
+
+	//	SRV
+	if (pSRV != nullptr) {
+		SetupSRV();
+	}
+#endif // NEW_S
+
 	//Main::pContext->Draw(3, 0);
 	Main::pContext->DrawIndexed(index.size(), 0, 0);
 	return S_OK;
+}
+
+
+void IndexDrawer::SetupSRV()
+{
+	Main::pContext->PSSetShaderResources(
+		0, 1, &pSRV
+	);
+}
+
+void IndexDrawer::SetupSampler()
+{
+	Main::pContext->PSSetSamplers(
+		0, 1,
+		&pSamp
+	);
 }
 
 MeshReadHelper::ReadBuffer MeshReadHelper::Read(std::string path)
