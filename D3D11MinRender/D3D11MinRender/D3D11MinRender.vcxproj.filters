@@ -65,10 +65,10 @@
     <ClInclude Include="Sources\WICTextureLoader.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="Sources\ps_test.h">
+    <ClInclude Include="Sources\vs_test.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="Sources\vs_test.h">
+    <ClInclude Include="Sources\ps_test.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
   </ItemGroup>

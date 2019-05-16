@@ -25,7 +25,7 @@ struct CBuffer
 class IndexDrawer:public IRender
 {
 public:
-	IndexDrawer() { eyePt = { 0, 0, -10 }; };
+	IndexDrawer() { eyePt = { 0, 0, -15 }; lookPt = { 0,0,0 }; };
 	~IndexDrawer() {};
 
 	HRESULT CreateTexture(std::wstring path);
@@ -47,6 +47,7 @@ private:
 	ID3D11ShaderResourceView*pSRV;
 	ID3D11SamplerState* pSamp;
 	DirectX::XMFLOAT3 eyePt;
+	DirectX::XMFLOAT3 lookPt;
 };
 
 class MeshReadHelper

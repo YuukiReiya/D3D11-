@@ -18,11 +18,6 @@ HRESULT IndexDrawer::CreateTexture(std::wstring path)
 	HRESULT hr;
 	Microsoft::WRL::ComPtr<ID3D11Resource> pResource = nullptr;
 	
-	ifstream is(path);
-	if (is.fail()) {
-		std::cout << "fileねーよ" << endl;
-	}
-
 	hr = CreateWICTextureFromFile(
 		Main::pDevice,
 		path.c_str(),
@@ -45,9 +40,9 @@ HRESULT IndexDrawer::CreateSampler()
 	D3D11_SAMPLER_DESC sd;
 	SecureZeroMemory(&sd, sizeof(sd));
 	sd.Filter = D3D11_FILTER::D3D11_FILTER_MIN_MAG_MIP_LINEAR;
-	sd.AddressU = D3D11_TEXTURE_ADDRESS_MODE::D3D11_TEXTURE_ADDRESS_CLAMP;
-	sd.AddressV = D3D11_TEXTURE_ADDRESS_MODE::D3D11_TEXTURE_ADDRESS_CLAMP;
-	sd.AddressW = D3D11_TEXTURE_ADDRESS_MODE::D3D11_TEXTURE_ADDRESS_CLAMP;
+	sd.AddressU = D3D11_TEXTURE_ADDRESS_MODE::D3D11_TEXTURE_ADDRESS_WRAP;
+	sd.AddressV = D3D11_TEXTURE_ADDRESS_MODE::D3D11_TEXTURE_ADDRESS_WRAP;
+	sd.AddressW = D3D11_TEXTURE_ADDRESS_MODE::D3D11_TEXTURE_ADDRESS_WRAP;
 	
 	HRESULT hr;
 	hr = Main::pDevice->CreateSamplerState(
@@ -59,7 +54,7 @@ HRESULT IndexDrawer::CreateSampler()
 
 	return S_OK;
 }
-#define NEW_S
+//#define NEW_S
 void IndexDrawer::Init(string meshPath)
 {
 	HRESULT hr;
@@ -70,9 +65,7 @@ void IndexDrawer::Init(string meshPath)
 		D3D11_INPUT_ELEMENT_DESC vd[]
 		{
 			{ "POSITION",0,DXGI_FORMAT_R32G32B32_FLOAT,	 0,							  0,D3D11_INPUT_PER_VERTEX_DATA,0},
-#ifdef NEW_S
 			{ "TEXCOORD",0,DXGI_FORMAT_R32G32_FLOAT,0,D3D11_APPEND_ALIGNED_ELEMENT,D3D11_INPUT_PER_VERTEX_DATA,0 },
-#endif
 		};
 		uint32_t en = sizeof(vd) / sizeof(*vd);
 		hr = Main::pDevice->CreateInputLayout(
@@ -222,6 +215,22 @@ void IndexDrawer::Update()
 	{
 		eyePt.y += value;
 	}
+	if (key::GetButton(key::c_Left))
+	{
+		lookPt.x -= value;
+	}
+	if (key::GetButton(key::c_Right))
+	{
+		lookPt.x += value;
+	}
+	if (key::GetButton(key::c_Up))
+	{
+		lookPt.y += value;
+	}
+	if (key::GetButton(key::c_Down))
+	{
+		lookPt.y -= value;
+	}
 
 }
 
@@ -248,7 +257,8 @@ HRESULT IndexDrawer::Draw()
 	{
 		XMVECTOR eye, look, upvec;
 		eye = { eyePt.x,eyePt.y,eyePt.z };
-		look = { 0,0,0 };
+		//look = { 0,0,0 };
+		look = { lookPt.x,lookPt.y,lookPt.z };
 		upvec = { 0,1,0 };
 		v = XMMatrixLookAtLH(eye, look, upvec);
 		v = XMMatrixTranspose(v);
@@ -277,7 +287,7 @@ HRESULT IndexDrawer::Draw()
 		cb.world = w;
 		cb.view = v;
 		cb.proj = p;
-		cb.color = { 1,1,0,1 };
+		cb.color = { 1,1,1,1 };
 
 		memcpy_s(pData.pData, pData.RowPitch, (void*)(&cb), sizeof(cb));
 		Main::pContext->Unmap(pCB, 0);
@@ -323,16 +333,16 @@ HRESULT IndexDrawer::Draw()
 	}
 
 #ifdef NEW_S
+#endif // NEW_S
 	//	サンプラー
-	if (pSamp != nullptr) {
+	//if (pSamp != nullptr) {
 		SetupSampler();
-	}
+	//}
 
 	//	SRV
-	if (pSRV != nullptr) {
+	//if (pSRV != nullptr) {
 		SetupSRV();
-	}
-#endif // NEW_S
+	//}
 
 	//Main::pContext->Draw(3, 0);
 	Main::pContext->DrawIndexed(index.size(), 0, 0);
