@@ -8,9 +8,9 @@
 void Scene::Init()
 {
 	id = new IndexDrawer;
-	id->Init("model1.yfm");
+	id->Init("test.yfm");
 	//id->CreateTexture(L"textures.png");
-	FAILED_ERROR(id->CreateTexture(L"ao_twinte_chan640x640.png"),L"cretae texture");
+	FAILED_ERROR(id->CreateTexture(L"hoge.png"),L"cretae texture");
 	id->CreateSampler();
 }
 
